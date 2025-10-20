@@ -23,8 +23,8 @@ COPY requirements.txt .
 # Установить Python пакеты
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копировать локальную библиотеку morin
-COPY ../library/morin /usr/local/lib/python3.11/site-packages/morin
+# Копировать локальную библиотеку ACS
+COPY ../library/acs_data_library /usr/local/lib/python3.11/site-packages/morin
 
 # Копировать главный скрипт
 COPY upload_main.py .
