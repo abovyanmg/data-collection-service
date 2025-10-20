@@ -1,0 +1,16 @@
+FROM clickhouse/clickhouse-server:latest
+
+# Метаданные
+LABEL maintainer="abovyan.mg@gmail.com"
+LABEL description="ACS ClickHouse server for data collection"
+LABEL version="1.0"
+LABEL source="https://github.com/abovyanmg/data-collection-service"
+
+# Копировать конфигурацию ClickHouse (если нужно)
+# COPY clickhouse-config.xml /etc/clickhouse-server/config.xml
+
+# Открыть порты
+EXPOSE 8123 9000
+
+# Команда запуска (используем стандартную)
+CMD ["clickhouse-server"]
