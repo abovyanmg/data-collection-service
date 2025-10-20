@@ -15,7 +15,7 @@ echo "✅ Авторизован в Docker Hub"
 
 # Публиковать upload_data
 echo "📦 Публикую upload_data:latest..."
-docker push abovyansconsulting/upload_data:latest
+docker push abovyanmg/upload_data:latest
 
 if [ $? -eq 0 ]; then
     echo "✅ upload_data опубликован"
@@ -26,7 +26,7 @@ fi
 
 # Публиковать clickhouse
 echo "📦 Публикую clickhouse:latest..."
-docker push abovyansconsulting/clickhouse:latest
+docker push abovyanmg/clickhouse:latest
 
 if [ $? -eq 0 ]; then
     echo "✅ clickhouse опубликован"
@@ -39,10 +39,10 @@ echo ""
 echo "🎉 Все образы опубликованы!"
 echo ""
 echo "📊 Опубликованные образы:"
-echo "  - abovyansconsulting/upload_data:latest"
-echo "  - abovyansconsulting/clickhouse:latest"
+echo "  - abovyanmg/upload_data:latest"
+echo "  - abovyanmg/clickhouse:latest"
 echo ""
-echo "🌐 Доступны на: https://hub.docker.com/u/abovyansconsulting"
+echo "🌐 Доступны на: https://hub.docker.com/u/abovyanmg"
 echo ""
 echo "📢 Уведомите клиентов об обновлении:"
 echo "  docker-compose pull"

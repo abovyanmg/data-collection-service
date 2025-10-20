@@ -113,16 +113,15 @@ docker-compose up -d
 
 ## 📞 Поддержка
 
-- **GitHub Issues**: https://github.com/YOUR_USERNAME/data-collection-service/issues
-- **Telegram**: @your_username
-- **Email**: your-email@example.com
+- **GitHub Issues**: https://github.com/abovyanmg/data-collection-service/issues
+- **Email**: abovyan.mg@gmail.com
 
 ---
 
 ## 📄 Лицензия
 
 Использует библиотеку [morin](https://github.com/morinad/morin) v0.4.45  
-Автор: Александр Морин (y.director@yandex.ru)
+Разработано: AbovyansConsultingServices
 
 ---
 

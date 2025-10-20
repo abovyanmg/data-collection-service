@@ -8,7 +8,7 @@ cd "$(dirname "$0")/../docker"
 
 # Собрать образ upload_data
 echo "📦 Сборка upload_data..."
-docker build -t abovyansconsulting/upload_data:latest -f Dockerfile.upload_data .
+docker build -t abovyanmg/upload_data:latest -f Dockerfile.upload_data .
 
 if [ $? -eq 0 ]; then
     echo "✅ upload_data собран успешно"
@@ -19,7 +19,7 @@ fi
 
 # Собрать образ clickhouse
 echo "📦 Сборка clickhouse..."
-docker build -t abovyansconsulting/clickhouse:latest -f Dockerfile.clickhouse .
+docker build -t abovyanmg/clickhouse:latest -f Dockerfile.clickhouse .
 
 if [ $? -eq 0 ]; then
     echo "✅ clickhouse собран успешно"
@@ -32,7 +32,7 @@ echo ""
 echo "🎉 Все образы собраны успешно!"
 echo ""
 echo "📊 Список образов:"
-docker images | grep abovyansconsulting
+docker images | grep abovyanmg
 
 echo ""
 echo "🧪 Для тестирования запустите: ./test.sh"

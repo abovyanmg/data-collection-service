@@ -21,13 +21,13 @@ echo "✅ Docker найден"
 # Скачать docker-compose.yml если его нет
 if [ ! -f "docker-compose.yml" ]; then
     echo "📥 Скачиваю docker-compose.yml..."
-    wget -q https://raw.githubusercontent.com/abovyansconsulting/data-collection-service/main/client/docker-compose.yml
+    wget -q https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/client/docker-compose.yml
 fi
 
 # Скачать пример settings.xlsx если его нет
 if [ ! -f "settings.xlsx" ]; then
     echo "📥 Скачиваю пример settings.xlsx..."
-    wget -q https://raw.githubusercontent.com/abovyansconsulting/data-collection-service/main/client/examples/settings_example.xlsx -O settings.xlsx
+    wget -q https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/client/examples/settings_example.xlsx -O settings.xlsx
     echo "⚠️  ВАЖНО: Отредактируйте settings.xlsx с вашими токенами!"
 fi
 

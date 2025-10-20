@@ -10,7 +10,7 @@ cd "$TEST_DIR"
 
 # Скачать пример settings.xlsx
 echo "📥 Скачиваю пример settings.xlsx..."
-wget -q https://raw.githubusercontent.com/abovyansconsulting/data-collection-service/main/admin/examples/settingsOneMarkets.xlsx -O settings.xlsx
+wget -q https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/admin/examples/settingsOneMarkets.xlsx -O settings.xlsx
 
 # Создать docker-compose для тестирования
 cat > docker-compose.test.yml << 'EOF'
@@ -18,7 +18,7 @@ version: '3.8'
 
 services:
   clickhouse:
-    image: abovyansconsulting/clickhouse:latest
+    image: abovyanmg/clickhouse:latest
     container_name: test_clickhouse
     ports:
       - "8124:8123"  # Другой порт для тестов
@@ -28,7 +28,7 @@ services:
       - CLICKHOUSE_PASSWORD=password
 
   upload_data:
-    image: abovyansconsulting/upload_data:latest
+    image: abovyanmg/upload_data:latest
     container_name: test_upload_data
     depends_on:
       - clickhouse

@@ -31,8 +31,8 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: |
-          abovyansconsulting/upload_data
-          abovyansconsulting/clickhouse
+          abovyanmg/upload_data
+          abovyanmg/clickhouse
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -45,7 +45,7 @@ jobs:
         context: ./admin
         file: ./admin/docker/Dockerfile.upload_data
         push: true
-        tags: abovyansconsulting/upload_data:latest
+        tags: abovyanmg/upload_data:latest
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -56,7 +56,7 @@ jobs:
         context: ./admin/docker
         file: ./admin/docker/Dockerfile.clickhouse
         push: true
-        tags: abovyansconsulting/clickhouse:latest
+        tags: abovyanmg/clickhouse:latest
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -70,4 +70,4 @@ jobs:
         echo "✅ Docker образы успешно собраны и опубликованы!"
         echo "📦 upload_data:latest"
         echo "📦 clickhouse:latest"
-        echo "🌐 https://hub.docker.com/u/abovyansconsulting"
+        echo "🌐 https://hub.docker.com/u/abovyanmg"
