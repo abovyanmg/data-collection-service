@@ -11,8 +11,8 @@ admin/
 ├── docker/                    # Dockerfiles для сборки образов
 │   ├── Dockerfile.upload_data
 │   └── Dockerfile.clickhouse
-├── library/                   # Исходники библиотеки morin
-│   └── morin/
+├── library/                   # Исходники библиотеки ACS
+│   └── acs_data_library/
 ├── scripts/                   # Скрипты автоматизации
 │   ├── build.sh              # Сборка образов
 │   ├── test.sh               # Тестирование
@@ -69,8 +69,8 @@ git push origin main
 
 ## 📊 Мониторинг
 
-- **Docker Hub**: https://hub.docker.com/u/your_username
-- **GitHub Actions**: https://github.com/YOUR_USERNAME/data-collection-service/actions
+- **Docker Hub**: https://hub.docker.com/u/abovyanmg
+- **GitHub Actions**: https://github.com/abovyanmg/data-collection-service/actions
 - **Тесты**: Локальные + CI/CD
 
 ---
