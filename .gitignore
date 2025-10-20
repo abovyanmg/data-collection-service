@@ -1,0 +1,32 @@
+# Чувствительные данные
+admin/examples/settings*.xlsx
+client/settings*.xlsx
+*.log
+*.tar.gz
+
+# Docker
+clickhouse_data/
+*.pid
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Временные файлы
+/tmp/
+*.tmp
+*.temp

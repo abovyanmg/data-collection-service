@@ -1,0 +1,42 @@
+FROM python:3.11-slim
+
+# Метаданные
+LABEL maintainer="info@abovyansconsulting.com"
+LABEL description="ACS Data collection container for multiple platforms (WB, Ozon, MSKLD, Yandex, etc.)"
+LABEL version="1.0"
+LABEL source="https://github.com/abovyansconsulting/data-collection-service"
+
+WORKDIR /app
+
+# Установить системные зависимости
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        curl \
+        wget \
+        && rm -rf /var/lib/apt/lists/*
+
+# Копировать requirements
+COPY requirements.txt .
+
+# Установить Python пакеты
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копировать локальную библиотеку morin
+COPY ../library/morin /usr/local/lib/python3.11/site-packages/morin
+
+# Копировать главный скрипт
+COPY upload_main.py .
+
+# Создать пользователя для безопасности
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import os; exit(0 if os.path.exists('/app/settings.xlsx') else 1)" || exit 1
+
+# Команда запуска
+CMD ["python", "upload_main.py"]

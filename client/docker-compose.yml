@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: abovyansconsulting/clickhouse:latest
+    container_name: my_clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # Native interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=password
+    networks:
+      - data_network
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Пример контейнера для сбора данных
+  upload_data_example:
+    image: abovyansconsulting/upload_data:latest
+    container_name: upload_data_example
+    restart: unless-stopped
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    volumes:
+      - ./settings.xlsx:/app/settings.xlsx:ro
+    networks:
+      - data_network
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=8123
+
+volumes:
+  clickhouse_data:
+    driver: local
+  clickhouse_logs:
+    driver: local
+
+networks:
+  data_network:
+    driver: bridge
