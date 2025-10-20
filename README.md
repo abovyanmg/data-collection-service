@@ -23,7 +23,7 @@
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│  Docker Hub (abovyansconsulting/data-collection)          │
+│  Docker Hub (abovyanmg/data-collection)                   │
 │  ├── upload_data:latest                                   │
 │  └── clickhouse:latest                                    │
 └─────────────────┬──────────────────────────────────────────┘
@@ -55,7 +55,7 @@ sh get-docker.sh
 ### 2. Запуск системы
 ```bash
 # Скачать готовый docker-compose.yml
-wget https://raw.githubusercontent.com/abovyansconsulting/data-collection-service/main/client/docker-compose.yml
+wget https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/client/docker-compose.yml
 
 # Запустить
 docker-compose up -d
@@ -128,16 +128,15 @@ docker-compose up -d
 
 ## 📞 Поддержка
 
-- **GitHub Issues**: https://github.com/abovyansconsulting/data-collection-service/issues
-- **Telegram**: @abovyansconsulting
-- **Email**: info@abovyansconsulting.com
+- **GitHub Issues**: https://github.com/abovyanmg/data-collection-service/issues
+- **Email**: abovyan.mg@gmail.com
 
 ---
 
 ## 📄 Лицензия
 
 Использует библиотеку [morin](https://github.com/morinad/morin) v0.4.45  
-Автор: Александр Морин (y.director@yandex.ru)
+Разработано: AbovyansConsultingServices
 
 ---
 

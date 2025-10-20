@@ -1,10 +1,10 @@
 FROM python:3.11-slim
 
 # Метаданные
-LABEL maintainer="info@abovyansconsulting.com"
+LABEL maintainer="abovyan.mg@gmail.com"
 LABEL description="ACS Data collection container for multiple platforms (WB, Ozon, MSKLD, Yandex, etc.)"
 LABEL version="1.0"
-LABEL source="https://github.com/abovyansconsulting/data-collection-service"
+LABEL source="https://github.com/abovyanmg/data-collection-service"
 
 WORKDIR /app
 

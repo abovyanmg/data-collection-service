@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   clickhouse:
-    image: abovyansconsulting/clickhouse:latest
+    image: abovyanmg/clickhouse:latest
     container_name: my_clickhouse
     restart: unless-stopped
     ports:
@@ -25,7 +25,7 @@ services:
 
   # Пример контейнера для сбора данных
   upload_data_example:
-    image: abovyansconsulting/upload_data:latest
+    image: abovyanmg/upload_data:latest
     container_name: upload_data_example
     restart: unless-stopped
     depends_on:
