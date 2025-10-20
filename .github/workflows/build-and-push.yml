@@ -1,13 +1,17 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    # Пересобирать каждый день в 2:00 UTC
-    - cron: '0 2 * * *'
+  # Временно отключено до настройки Docker Hub секретов
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main ]
+  # schedule:
+  #   # Пересобирать каждый день в 2:00 UTC
+  #   - cron: '0 2 * * *'
+  
+  # Включить после создания Docker Hub аккаунта и настройки секретов
+  workflow_dispatch:  # Ручной запуск
 
 jobs:
   build:
