@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- ACS Data Collection Service Configuration Template -->
+    <!-- Замените все значения YOUR_* на ваши реальные данные -->
+    
+    <database>
+        <host>YOUR_CLICKHOUSE_HOST</host>
+        <port>8123</port>
+        <user>YOUR_CLICKHOUSE_USER</user>
+        <password>YOUR_CLICKHOUSE_PASSWORD</password>
+        <database>YOUR_DATABASE_NAME</database>
+    </database>
+    
+    <telegram>
+        <bot_token>YOUR_TELEGRAM_BOT_TOKEN</bot_token>
+        <chat_id>YOUR_TELEGRAM_CHAT_ID</chat_id>
+        <enabled>true</enabled>
+    </telegram>
+    
+    <platforms>
+        <ozon>
+            <client_id>YOUR_OZON_CLIENT_ID</client_id>
+            <api_key>YOUR_OZON_API_KEY</api_key>
+            <enabled>true</enabled>
+        </ozon>
+        
+        <wildberries>
+            <api_key>YOUR_WB_API_KEY</api_key>
+            <enabled>true</enabled>
+        </wildberries>
+        
+        <mskld>
+            <api_key>YOUR_MSKLD_API_KEY</api_key>
+            <enabled>false</enabled>
+        </mskld>
+    </platforms>
+    
+    <settings>
+        <project_name>YOUR_PROJECT_NAME</project_name>
+        <timezone>UTC</timezone>
+        <log_level>INFO</log_level>
+        <data_retention_days>90</data_retention_days>
+    </settings>
+    
+    <monitoring>
+        <health_check_interval>300</health_check_interval>
+        <alert_on_errors>true</alert_on_errors>
+        <max_retry_attempts>3</max_retry_attempts>
+    </monitoring>
+</configuration>

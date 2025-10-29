@@ -3,12 +3,19 @@ name: Build and Push Docker Images
 on:
   push:
     branches: [ main, develop ]
+    tags:
+      - 'v*.*.*'  # Триггер на git теги формата v1.0.0
   pull_request:
     branches: [ main ]
   schedule:
     # Пересобирать каждый день в 2:00 UTC
     - cron: '0 2 * * *'
   workflow_dispatch:  # Ручной запуск
+
+env:
+  REGISTRY: docker.io
+  UPLOAD_DATA_IMAGE: abovyanmg/upload_data
+  CLICKHOUSE_IMAGE: abovyanmg/clickhouse
 
 jobs:
   build:
@@ -17,6 +24,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Полная история для версионирования
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -27,48 +36,90 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: |
-          abovyanmg/upload_data
-          abovyanmg/clickhouse
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+    - name: Generate version tags
+      id: version
+      run: |
+        # Определяем версию из git тега или генерируем
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}  # Убираем префикс 'v' если есть
+          IS_RELEASE=true
+        else
+          # Генерируем версию из даты и коммита
+          VERSION="$(date +'%Y.%m.%d')-${GITHUB_SHA::7}"
+          IS_RELEASE=false
+        fi
+        
+        # Для main ветки создаем stable тег
+        if [[ "${{ github.ref }}" == refs/heads/main ]]; then
+          STABLE_TAG="stable"
+        else
+          STABLE_TAG=""
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
+        echo "stable_tag=$STABLE_TAG" >> $GITHUB_OUTPUT
+        echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+        
+        echo "📦 Generated version: $VERSION"
+        echo "🏷️  Is release: $IS_RELEASE"
+        echo "🔖 Stable tag: $STABLE_TAG"
     
     - name: Build and push upload_data
+      id: build_upload_data
       uses: docker/build-push-action@v5
       with:
         context: ./admin
         file: ./admin/docker/Dockerfile.upload_data
         push: true
-        tags: abovyanmg/upload_data:latest
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: |
+          ${{ env.UPLOAD_DATA_IMAGE }}:latest
+          ${{ env.UPLOAD_DATA_IMAGE }}:${{ steps.version.outputs.version }}
+          ${{ env.UPLOAD_DATA_IMAGE }}:${{ steps.version.outputs.stable_tag }}
+          ${{ env.UPLOAD_DATA_IMAGE }}:${{ steps.version.outputs.short_sha }}
+        labels: |
+          org.opencontainers.image.title=ACS Data Collection Service
+          org.opencontainers.image.description=Professional data collection from marketplaces to ClickHouse
+          org.opencontainers.image.version=${{ steps.version.outputs.version }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
     - name: Build and push clickhouse
+      id: build_clickhouse
       uses: docker/build-push-action@v5
       with:
         context: ./admin/docker
         file: ./admin/docker/Dockerfile.clickhouse
         push: true
-        tags: abovyanmg/clickhouse:latest
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: |
+          ${{ env.CLICKHOUSE_IMAGE }}:latest
+          ${{ env.CLICKHOUSE_IMAGE }}:${{ steps.version.outputs.version }}
+          ${{ env.CLICKHOUSE_IMAGE }}:${{ steps.version.outputs.stable_tag }}
+          ${{ env.CLICKHOUSE_IMAGE }}:${{ steps.version.outputs.short_sha }}
+        labels: |
+          org.opencontainers.image.title=ACS ClickHouse
+          org.opencontainers.image.description=ClickHouse database for ACS Data Collection Service
+          org.opencontainers.image.version=${{ steps.version.outputs.version }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
-    - name: Image digest
-      run: echo ${{ steps.build.outputs.digest }}
-    
-    - name: Notify on success
-      if: success()
+    - name: Image digests
       run: |
         echo "✅ Docker образы успешно собраны и опубликованы!"
         echo "📦 upload_data:latest"
+        echo "📦 upload_data:${{ steps.version.outputs.version }}"
+        echo "📦 upload_data:${{ steps.version.outputs.stable_tag }}"
+        echo "📦 upload_data:${{ steps.version.outputs.short_sha }}"
         echo "📦 clickhouse:latest"
+        echo "📦 clickhouse:${{ steps.version.outputs.version }}"
+        echo "📦 clickhouse:${{ steps.version.outputs.stable_tag }}"
+        echo "📦 clickhouse:${{ steps.version.outputs.short_sha }}"
         echo "🌐 https://hub.docker.com/u/abovyanmg"
+        echo ""
+        echo "🔖 Для использования стабильной версии укажите тег: stable"
+        echo "🔖 Для использования конкретной версии укажите тег: ${{ steps.version.outputs.version }}"

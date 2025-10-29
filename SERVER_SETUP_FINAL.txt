@@ -1,0 +1,343 @@
+================================================================================
+ПОШАГОВАЯ НАСТРОЙКА ACS СИСТЕМЫ НА СЕРВЕРЕ
+================================================================================
+
+НА ОСНОВЕ АНАЛИЗА РАБОТАЮЩЕЙ СИСТЕМЫ MORINAD
+
+================================================================================
+ШАГ 1: ПОДГОТОВКА СЕРВЕРА
+================================================================================
+
+# Обновите систему
+apt update && apt upgrade -y
+
+# Установите необходимые пакеты
+apt install -y curl wget git unzip
+
+# Настройте часовой пояс (Москва)
+timedatectl set-timezone Europe/Moscow
+
+# Проверьте время
+date
+
+================================================================================
+ШАГ 2: УСТАНОВКА DOCKER
+================================================================================
+
+# Удалите старые версии Docker
+apt remove -y docker docker-engine docker.io containerd runc
+
+# Установите зависимости
+apt install -y ca-certificates curl gnupg lsb-release
+
+# Добавьте официальный GPG ключ Docker
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Добавьте репозиторий Docker
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Обновите пакеты
+apt update
+
+# Установите Docker
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Запустите Docker
+systemctl start docker
+systemctl enable docker
+
+# Проверьте установку
+docker --version
+docker run hello-world
+
+================================================================================
+ШАГ 3: УСТАНОВКА DOCKER COMPOSE
+================================================================================
+
+# Скачайте Docker Compose
+curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# Сделайте исполняемым
+chmod +x /usr/local/bin/docker-compose
+
+# Проверьте установку
+docker-compose --version
+
+================================================================================
+ШАГ 4: НАСТРОЙКА ФАЙРВОЛА
+================================================================================
+
+# Установите UFW
+apt install -y ufw
+
+# Настройте правила
+ufw allow ssh
+ufw allow 8123/tcp  # ClickHouse HTTP
+ufw allow 9000/tcp  # ClickHouse TCP
+ufw --force enable
+
+# Проверьте статус
+ufw status
+
+================================================================================
+ШАГ 5: ПОДГОТОВКА ФАЙЛОВ
+================================================================================
+
+# Создайте рабочую директорию
+mkdir -p /root/data-collection-service/client
+cd /root/data-collection-service/client
+
+# Скачайте docker-compose.yml
+wget -O docker-compose.yml https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/client/docker-compose.yml
+
+# Скачайте примеры конфигураций
+wget -O config.xml https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/admin/examples/config.xml
+wget -O users.xml https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/admin/examples/users.xml
+wget -O settings.xlsx https://raw.githubusercontent.com/abovyanmg/data-collection-service/main/admin/examples/settings.xlsx
+
+# Установите права доступа
+chmod 644 config.xml users.xml settings.xlsx
+
+================================================================================
+ШАГ 6: СОЗДАНИЕ DOCKER РЕСУРСОВ
+================================================================================
+
+# Создайте Docker volume для ClickHouse
+docker volume create clickhouse_volume
+
+# Создайте Docker network
+docker network create --driver bridge chnet
+
+# Проверьте создание
+docker volume ls | grep clickhouse
+docker network ls | grep chnet
+
+================================================================================
+ШАГ 7: НАСТРОЙКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
+================================================================================
+
+# Создайте .env файл
+cat > .env << 'EOF'
+# ClickHouse настройки
+CLICKHOUSE_HOST=my_clickhouse
+CLICKHOUSE_PORT=8123
+CLICKHOUSE_USER=default
+CLICKHOUSE_PASSWORD=YOUR_PASSWORD_HERE
+CLICKHOUSE_DATABASE=default
+
+# Telegram настройки
+TELEGRAM_BOT_TOKEN=YOUR_BOT_TOKEN_HERE
+TELEGRAM_CHAT_ID=YOUR_CHAT_ID_HERE
+
+# Настройки проекта
+PROJECT_NAME=ACS_Data_Collection
+PLATFORM=ozon,wb,mskld,yandex,vk,getcourse
+TZ=Europe/Moscow
+EOF
+
+# Установите права доступа
+chmod 600 .env
+
+================================================================================
+ШАГ 8: ЗАПУСК СИСТЕМЫ (ИСПОЛЬЗУЙТЕ ОРИГИНАЛЬНЫЕ ОБРАЗЫ MORINAD)
+================================================================================
+
+# Остановите и удалите существующие контейнеры
+docker stop my_clickhouse upload_data 2>/dev/null || true
+docker rm my_clickhouse upload_data 2>/dev/null || true
+
+# Запустите ClickHouse (используйте наш ACS образ с правильными параметрами)
+docker run -d --name my_clickhouse --network chnet \
+  -p 8123:8123 -p 9000:9000 \
+  -v clickhouse_volume:/var/lib/clickhouse \
+  -v /root/data-collection-service/client/config.xml:/etc/clickhouse-server/config.xml \
+  -v /root/data-collection-service/client/users.xml:/etc/clickhouse-server/users.xml \
+  --user clickhouse \
+  abovyanmg/acs-clickhouse:latest \
+  clickhouse-server --config-file=/etc/clickhouse-server/config.xml
+
+# Подождите 30 секунд для запуска ClickHouse
+sleep 30
+
+# Проверьте статус ClickHouse
+echo "=== Проверка ClickHouse ==="
+docker ps | grep my_clickhouse
+curl -s http://localhost:8123/ping || echo "ClickHouse еще запускается..."
+
+# Запустите upload_data (используйте наш ACS образ)
+docker run -d --name upload_data --network chnet \
+  -v "/root/data-collection-service/client/settings.xlsx:/app/settings.xlsx" \
+  abovyanmg/acs-upload-data:latest
+
+# Подождите 10 секунд
+sleep 10
+
+# Проверьте статус всех контейнеров
+echo "=== Статус контейнеров ==="
+docker ps
+
+================================================================================
+ШАГ 9: ПРОВЕРКА РАБОТЫ СИСТЕМЫ
+================================================================================
+
+# Проверьте логи ClickHouse
+echo "=== Логи ClickHouse ==="
+docker logs my_clickhouse | tail -10
+
+# Проверьте логи upload_data
+echo "=== Логи upload_data ==="
+docker logs upload_data | tail -10
+
+# Проверьте подключение к ClickHouse
+echo "=== Тест подключения ==="
+curl -s http://localhost:8123/ping
+
+# Проверьте сеть
+echo "=== Информация о сети ==="
+docker network inspect chnet | grep -A5 -B5 IPAddress
+
+================================================================================
+ШАГ 10: НАСТРОЙКА АВТОЗАПУСКА
+================================================================================
+
+# Создайте systemd сервис
+cat > /etc/systemd/system/acs.service << 'EOF'
+[Unit]
+Description=ACS Data Collection Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/root/data-collection-service/client
+ExecStart=/bin/bash -c "docker start my_clickhouse && sleep 30 && docker start upload_data"
+ExecStop=/bin/bash -c "docker stop upload_data my_clickhouse"
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Перезагрузите systemd
+systemctl daemon-reload
+
+# Включите автозапуск
+systemctl enable acs.service
+
+# Проверьте статус
+systemctl status acs.service
+
+================================================================================
+ШАГ 11: МОНИТОРИНГ СИСТЕМЫ
+================================================================================
+
+# Создайте скрипт мониторинга
+cat > /root/monitor_acs.sh << 'EOF'
+#!/bin/bash
+
+echo "🔍 Проверка ACS системы..."
+
+# Проверяем статус ClickHouse
+if ! curl -s http://localhost:8123/ping | grep -q "Ok"; then
+    echo "❌ ClickHouse недоступен - перезапускаем..."
+    docker restart my_clickhouse
+    sleep 30
+fi
+
+# Проверяем статус контейнеров
+if ! docker ps | grep -q "my_clickhouse.*Up"; then
+    echo "❌ ClickHouse не запущен"
+    exit 1
+fi
+
+if ! docker ps | grep -q "upload_data.*Up"; then
+    echo "❌ upload_data не запущен"
+    exit 1
+fi
+
+echo "✅ ACS система работает нормально"
+EOF
+
+# Сделайте скрипт исполняемым
+chmod +x /root/monitor_acs.sh
+
+# Добавьте в cron для ежедневной проверки
+echo "0 14 * * * /root/monitor_acs.sh" | crontab -
+
+================================================================================
+ШАГ 12: ПРОВЕРКА УСТАНОВКИ
+================================================================================
+
+# Финальная проверка
+echo "=== ФИНАЛЬНАЯ ПРОВЕРКА СИСТЕМЫ ==="
+
+echo "Docker версия:"
+docker --version
+
+echo "Docker Compose версия:"
+docker-compose --version
+
+echo "Статус контейнеров:"
+docker ps
+
+echo "Использование ресурсов:"
+docker stats --no-stream
+
+echo "Подключение к ClickHouse:"
+curl -s http://localhost:8123/ping
+
+echo "Логи upload_data:"
+docker logs upload_data | tail -5
+
+echo "✅ ACS система успешно установлена и запущена!"
+
+================================================================================
+ВАЖНЫЕ ЗАМЕЧАНИЯ
+================================================================================
+
+1. ВСЕГДА используйте оригинальные образы Morinad:
+   - morinad/my_clickhouse:latest
+   - morinad/upload_data:latest
+
+2. Система может показывать ошибки DNS разрешения "my_clickhouse" - это нормально,
+   система все равно работает через IP адреса в Docker сети.
+
+3. Настройте settings.xlsx с вашими реальными API ключами и токенами.
+
+4. Проверяйте логи регулярно для выявления проблем.
+
+5. Система автоматически перезапустится при перезагрузке сервера.
+
+================================================================================
+УСТРАНЕНИЕ НЕПОЛАДОК
+================================================================================
+
+# Если ClickHouse не запускается:
+docker logs my_clickhouse
+docker restart my_clickhouse
+
+# Если upload_data не подключается к ClickHouse:
+docker restart upload_data
+
+# Если нужно пересоздать все контейнеры:
+docker stop upload_data my_clickhouse
+docker rm upload_data my_clickhouse
+# Затем повторите ШАГ 8
+
+# Проверка сети:
+docker network inspect chnet
+
+# Проверка volumes:
+docker volume ls
+
+================================================================================
+КОНТАКТЫ ПОДДЕРЖКИ
+================================================================================
+
+Email: abovyan.mg@gmail.com
+GitHub: https://github.com/abovyanmg/data-collection-service
+
+Спасибо за базис: Morinad
+Особая благодарность Александру Морину (@alexdirect)
