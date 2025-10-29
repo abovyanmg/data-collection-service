@@ -63,9 +63,10 @@ docker-compose up -d
 - **Лист 2+**: Конфигурация платформ (токены, даты, отчеты)
 
 ### Примеры:
-- `settingsOneMarkets.xlsx` - Ozon + Wildberries
-- `settingsTATTOOFEELandLinePro.xlsx` - МойСклад + Ozon
-- `settingsbeYoo.xlsx` - Яндекс.Директ + VK
+- `settings_template.xlsx` - пустой шаблон для заполнения
+- `settings_example_ozon_wb.xlsx` - Ozon + Wildberries
+- `settings_example_mskld.xlsx` - МойСклад + Ozon
+- `settings_example_yandex.xlsx` - Яндекс.Директ + VK
 
 ---
 

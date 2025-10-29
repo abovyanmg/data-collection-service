@@ -2,7 +2,11 @@ version: '3.8'
 
 services:
   clickhouse:
-    image: abovyanmg/clickhouse:latest
+    # Используем стабильную версию для надежности
+    # Для использования последней версии замените на: latest
+    image: abovyanmg/acs-clickhouse:stable
+    # Альтернативно, можно использовать конкретную версию:
+    # image: abovyanmg/acs-clickhouse:v1.0.0
     container_name: my_clickhouse
     restart: unless-stopped
     ports:
@@ -25,7 +29,11 @@ services:
 
   # Пример контейнера для сбора данных
   upload_data_example:
-    image: abovyanmg/upload_data:latest
+    # Используем стабильную версию для надежности
+    # Для использования последней версии замените на: latest
+    image: abovyanmg/acs-upload-data:stable
+    # Альтернативно, можно использовать конкретную версию:
+    # image: abovyanmg/acs-upload-data:v1.0.0
     container_name: upload_data_example
     restart: unless-stopped
     depends_on:

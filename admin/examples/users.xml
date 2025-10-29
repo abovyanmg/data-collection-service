@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<yandex>
+    <users>
+        <!-- Конфигурация пользователя default -->
+        <default>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <password>YOUR_DEFAULT_PASSWORD</password> <!-- Замените на ваш пароль -->
+            <quota>default_quota</quota>
+            <profile>admin</profile>
+            <access_management>1</access_management>
+        </default>
+        <USER1>
+            <password>YOUR_USER1_PASSWORD</password> <!-- Замените на ваш пароль -->
+            <networks>
+            <ip>::/0</ip> <!-- Разрешить доступ со всех IP (можно ограничить, например, <ip>192.168.1.0/24</ip>) -->
+            </networks>
+            <profile>readonly</profile> <!-- Профиль с правами только на чтение -->
+            <quota>default_quota</quota> <!-- Квота (можно задать свою) -->
+        </USER1>
+        <USER2>
+            <password>YOUR_USER2_PASSWORD</password> <!-- Замените на ваш пароль -->
+            <networks>
+            <ip>::/0</ip> <!-- Разрешить доступ со всех IP (можно ограничить, например, <ip>192.168.1.0/24</ip>) -->
+            </networks>
+            <profile>readonly</profile> <!-- Профиль с правами только на чтение -->
+            <quota>default_quota</quota> <!-- Квота (можно задать свою) -->
+        </USER2>
+        <USER3>
+            <password>YOUR_USER3_PASSWORD</password> <!-- Замените на ваш пароль -->
+            <networks>
+            <ip>::/0</ip> <!-- Разрешить доступ со всех IP (можно ограничить, например, <ip>192.168.1.0/24</ip>) -->
+            </networks>
+            <profile>readonly</profile> <!-- Профиль с правами только на чтение -->
+            <quota>default_quota</quota> <!-- Квота (можно задать свою) -->
+        </USER3>
+    </users>
+
+    <!-- Пример профилей, задающих ограничения на ресурсы и поведение -->
+    <profiles>
+        <default>
+            <max_memory_usage>10000000000</max_memory_usage><!-- Ограничение по памяти, например, 1ГБ -->
+            <readonly>0</readonly>
+        </default>
+         <readonly>
+            <max_memory_usage>10000000000</max_memory_usage>
+            <max_memory_usage_for_user>20000000000</max_memory_usage_for_user>
+            <max_bytes_before_external_group_by>5000000000</max_bytes_before_external_group_by>
+            <max_bytes_before_external_sort>5000000000</max_bytes_before_external_sort>
+            <readonly>1</readonly>
+        </readonly>
+        <admin>
+            <max_memory_usage>20000000000</max_memory_usage><!-- Больше памяти для администратора -->
+            <readonly>0</readonly>
+            <allow_introspection_functions>1</allow_introspection_functions><!-- Разрешить диагностические функции -->
+        </admin>
+    </profiles>
+
+    <!-- Пример квоты для ограничения запросов -->
+    <quotas>
+        <default_quota>
+            <interval>
+                <duration>3600</duration>
+                <queries>20000</queries> <!-- Максимум 1000 запросов в час -->
+            </interval>
+        </default_quota>
+    </quotas>
+    <access_control_path>/var/lib/clickhouse/access/</access_control_path>
+</yandex>
