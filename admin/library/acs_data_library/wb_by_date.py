@@ -629,7 +629,7 @@ class WBbyDate:
             import uuid
             url = "https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads"
             headers = {
-                "Authorization": f"Bearer {self.token}",
+                "Authorization": self.token,
                 "Content-Type": "application/json"
             }
             report_id = str(uuid.uuid4())
@@ -659,7 +659,7 @@ class WBbyDate:
         """Проверить статус генерации отчета"""
         try:
             url = "https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads"
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"Authorization": self.token}
             params = {"filter[downloadIds]": [download_id]}
             response = requests.get(url, headers=headers, params=params)
             code = response.status_code
@@ -679,7 +679,7 @@ class WBbyDate:
         """Скачать и обработать отчет nmreport"""
         try:
             url = f"https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads/file/{download_id}"
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"Authorization": self.token}
             response = requests.get(url, headers=headers)
             code = response.status_code
             if code == 200:
