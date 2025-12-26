@@ -32,50 +32,58 @@ class Common:
     def log_func(self, bot_token, chat_ids,message, value):
         try:
             print(message)
+            log_file_path = "/app/log.txt"
             if not self.running_in_airflow():
                 log_dir = "/app/logs"
                 os.makedirs(log_dir, exist_ok=True)
                 log_file_path = os.path.join(log_dir, "log.txt")
-                if value >= self.value:
-                    with open(log_file_path, "a", encoding="utf-8") as log_file:
-                        log_file.write(message + "\n\n")
-                self.send_logs_clear(bot_token, chat_ids, message)
+            else:
+                os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+            if value >= self.value:
+                with open(log_file_path, "a", encoding="utf-8") as log_file:
+                    log_file.write(message + "\n\n")
+            self.send_logs_clear(bot_token, chat_ids, message)
         except Exception as e:
             print(f'Ошибка log_func: {e}')
 
     def send_logs_clear(self,bot_token, chat_ids, message):
         try:
+            log_file_path = "/app/log.txt"
             if not self.running_in_airflow():
                 log_file_path = "/app/logs/log.txt"
-                if not os.path.exists(log_file_path):
+            if not os.path.exists(log_file_path):
+                if not self.running_in_airflow():
                     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-                with open(log_file_path, "r") as log_file:
-                    content = log_file.read()
-                if len(content) > 1000:
-                    self.message_text = content
-                    self.send_logs(bot_token, chat_ids)
-                    with open(log_file_path, "w") as log_file:
-                        log_file.write("")  # Очищаем файл
-                    print("Файл очищен, длина содержимого превышала 1000 символов.")
-                return content
+                else:
+                    print("Файл лога не существует.")
+            with open(log_file_path, "r") as log_file:
+                content = log_file.read()
+            if len(content) > 1000:
+                self.message_text = content
+                self.send_logs(bot_token, chat_ids)
+                with open(log_file_path, "w") as log_file:
+                    log_file.write("")  # Очищаем файл
+                print("Файл очищен, длина содержимого превышала 1000 символов.")
+            return content
         except Exception as e:
             print(f'Ошибка send_logs_clear: {e}')
 
     def send_logs_clear_anyway(self,bot_token, chat_ids):
         try:
+            log_file_path = "/app/log.txt"
             if not self.running_in_airflow():
                 log_file_path = "/app/logs/log.txt"
-                if not os.path.exists(log_file_path):
-                    print("Файл лога не существует.")
-                with open(log_file_path, "r") as log_file:
-                    content = log_file.read()
-                if len(content.strip()) > 0:
-                    self.message_text = content.strip()
-                    self.send_logs(bot_token, chat_ids)
-                    with open(log_file_path, "w") as log_file:
-                        log_file.write("")  # Очищаем файл
-                    print("Файл очищен, длина содержимого превышала 1000 символов.")
-                return content
+            if not os.path.exists(log_file_path):
+                print("Файл лога не существует.")
+            with open(log_file_path, "r") as log_file:
+                content = log_file.read()
+            if len(content.strip()) > 0:
+                self.message_text = content.strip()
+                self.send_logs(bot_token, chat_ids)
+                with open(log_file_path, "w") as log_file:
+                    log_file.write("")  # Очищаем файл
+                print("Файл очищен, длина содержимого превышала 1000 символов.")
+            return content
         except Exception as e:
             print(f'Ошибка send_logs_clear: {e}')
 

@@ -94,22 +94,10 @@ class OZONreklama:
                 campaigns = response.json()['list']
                 df = pd.json_normalize(campaigns)
                 pd.set_option('display.max_columns', None)
-                try:
-                    df.rename(columns={'autopilot.maxBid': 'autopilot_maxBid'}, inplace=True)
-                except:
-                    pass
-                try:
-                    df.rename(columns={'autopilot.categoryId': 'autopilot_categoryId'}, inplace=True)
-                except:
-                    pass
-                try:
-                    df.rename(columns={'autopilot.filters': 'autopilot_filters'}, inplace=True)
-                except:
-                    pass
-                try:
-                    df.rename(columns={'autopilot.skuAddMode': 'autopilot_skuAddMode'}, inplace=True)
-                except:
-                    pass
+                df.rename(columns={'autopilot.maxBid': 'autopilot_maxBid'}, inplace=True)
+                df.rename(columns={'autopilot.categoryId': 'autopilot_categoryId'}, inplace=True)
+                df.rename(columns={'autopilot.filters': 'autopilot_filters'}, inplace=True)
+                df.rename(columns={'autopilot.skuAddMode': 'autopilot_skuAddMode'}, inplace=True)
                 df['createdAt'] = pd.to_datetime(df['createdAt'], errors='coerce')
                 df['updatedAt'] = pd.to_datetime(df['updatedAt'], errors='coerce')
                 df['timeStamp'] = self.now
