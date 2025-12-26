@@ -1,14 +1,16 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'admin/library/acs_data_library/**'
-      - 'admin/docker/**'
-      - '.github/workflows/docker-build.yml'
-  workflow_dispatch:
+  # Автоматическая сборка отключена до настройки GitHub Secrets
+  # Раскомментируйте после настройки DOCKER_HUB_USERNAME и DOCKER_HUB_TOKEN
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'admin/library/acs_data_library/**'
+  #     - 'admin/docker/**'
+  #     - '.github/workflows/docker-build.yml'
+  workflow_dispatch:  # Только ручной запуск
 
 env:
   DOCKER_HUB_USERNAME: abovyanmg
