@@ -229,7 +229,7 @@ class WBbyDate:
                 'report_name': 'nmreport',
                 'upload_table': 'nmreport',
                 'func_name': self.get_nmreport,
-                'uniq_columns': 'nmID,dt',
+                'uniq_columns': 'nmid,dt',
                 'partitions': '',
                 'merge_type': 'ReplacingMergeTree(timeStamp)',
                 'refresh_type': 'nothing',
