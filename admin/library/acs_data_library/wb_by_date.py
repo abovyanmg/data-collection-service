@@ -647,8 +647,23 @@ class WBbyDate:
             response = requests.post(url, headers=headers, json=payload)
             code = response.status_code
             if code == 200:
+                # Проверяем ответ API на наличие ошибок
+                try:
+                    result = response.json()
+                    # API может вернуть 200, но с ошибкой в теле
+                    if isinstance(result, dict) and 'error' in result:
+                        error_msg = result.get('error', 'Unknown error')
+                        message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: create_nmreport. Ошибка API: {error_msg}.'
+                        self.common.log_func(self.bot_token, self.chat_list, message, 3)
+                        return message
+                except:
+                    pass  # Если не JSON или нет ошибки - продолжаем
                 return report_id
             else:
+                # Логируем детали ошибки перед raise_for_status
+                error_text = response.text[:500] if hasattr(response, 'text') else str(response)
+                message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: create_nmreport. Код: {code}. Ответ: {error_text}.'
+                self.common.log_func(self.bot_token, self.chat_list, message, 3)
                 response.raise_for_status()
         except Exception as e:
             message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: create_nmreport. Ошибка: {e}.'
