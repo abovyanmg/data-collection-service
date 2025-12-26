@@ -1,16 +1,14 @@
 name: Build and Push Docker Images
 
 on:
-  # Автоматическая сборка отключена до настройки GitHub Secrets
-  # Раскомментируйте после настройки DOCKER_HUB_USERNAME и DOCKER_HUB_TOKEN
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'admin/library/acs_data_library/**'
-  #     - 'admin/docker/**'
-  #     - '.github/workflows/docker-build.yml'
-  workflow_dispatch:  # Только ручной запуск
+  push:
+    branches:
+      - main
+    paths:
+      - 'admin/library/acs_data_library/**'
+      - 'admin/docker/**'
+      - '.github/workflows/docker-build.yml'
+  workflow_dispatch:
 
 env:
   DOCKER_HUB_USERNAME: abovyanmg
@@ -31,6 +29,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
+        continue-on-error: true
 
       - name: Extract metadata
         id: meta
@@ -51,9 +50,11 @@ jobs:
         with:
           context: .
           file: ./admin/docker/Dockerfile.upload_data
-          push: true
+          push: ${{ secrets.DOCKER_HUB_TOKEN != '' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+        env:
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
