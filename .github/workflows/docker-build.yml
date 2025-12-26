@@ -29,7 +29,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-        continue-on-error: true
 
       - name: Extract metadata
         id: meta
