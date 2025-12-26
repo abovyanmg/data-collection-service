@@ -1,14 +1,6 @@
-# Инструкция по обновлению Docker Hub после актуализации с Morin
+# Инструкция по сборке и публикации Docker образов
 
-## 📋 Что было обновлено
-
-После актуализации проекта ACS с Morin были внесены изменения в следующие файлы:
-- `admin/library/acs_data_library/common.py` - синхронизация с Morin, сохранена поддержка Airflow
-- `admin/library/acs_data_library/ozon_reklama.py` - обновлена обработка ошибок
-- `admin/library/acs_data_library/wb_reklama.py` - исправлен delay (90 → 61)
-- Добавлены `setup.py` и `LICENSE`
-
-## 🐳 Обновление Docker Hub
+## 🐳 Сборка Docker образа
 
 ### Шаг 1: Авторизация в Docker Hub
 
@@ -26,33 +18,30 @@ cd C:\Users\RAIDER\Desktop\ACS\repos\acs-project
 ### Шаг 3: Сборка образа upload_data
 
 ```powershell
-# Сборка образа с обновленным кодом
+# Сборка образа из корня проекта
 docker build -f admin/docker/Dockerfile.upload_data -t abovyanmg/acs-upload-data:latest .
 ```
 
-**Важно:** Dockerfile должен собираться из корня проекта, чтобы правильно скопировать все файлы.
+**Важно:** Dockerfile должен собираться из корня проекта (`.`), чтобы правильно скопировать все файлы.
 
-### Шаг 4: Создание тегов для версионирования
+### Шаг 4: Создание тегов (опционально)
 
 ```powershell
-# Создаем тег stable (стабильная версия)
+# Стабильная версия
 docker tag abovyanmg/acs-upload-data:latest abovyanmg/acs-upload-data:stable
 
-# Создаем тег с версией
+# Версия с номером
 docker tag abovyanmg/acs-upload-data:latest abovyanmg/acs-upload-data:v1.0.0
 ```
 
-### Шаг 5: Публикация образов в Docker Hub
+### Шаг 5: Публикация в Docker Hub
 
 ```powershell
-# Публикуем latest версию
+# Публикуем latest
 docker push abovyanmg/acs-upload-data:latest
 
-# Публикуем stable версию
+# Публикуем stable (если создали тег)
 docker push abovyanmg/acs-upload-data:stable
-
-# Публикуем версию v1.0.0
-docker push abovyanmg/acs-upload-data:v1.0.0
 ```
 
 ## 🔍 Проверка после публикации
@@ -79,13 +68,11 @@ docker images | Select-String "abovyanmg"
    docker push abovyanmg/acs-clickhouse:latest
    ```
 
-## 🚀 Автоматизация (рекомендуется)
+## 📝 Примечания
 
-Для автоматической сборки при каждом коммите рекомендуется настроить GitHub Actions:
-
-1. Создать файл `.github/workflows/docker-build.yml`
-2. Настроить автоматическую сборку при push в main
-3. Использовать GitHub Secrets для хранения Docker Hub credentials
+- Сборка образа занимает 5-10 минут
+- Размер образа: ~500-800 MB
+- После публикации клиенты могут обновить контейнеры командой: `docker pull abovyanmg/acs-upload-data:stable`
 
 ## ✅ Чеклист
 
