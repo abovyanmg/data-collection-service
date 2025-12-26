@@ -227,7 +227,7 @@ class WBbyDate:
             'nmreport': {
                 'platform': 'wb',
                 'report_name': 'nmreport',
-                'upload_table': 'nmreport',
+                'upload_table': 'nmreport_v2',
                 'func_name': self.get_nmreport,
                 'uniq_columns': 'nmid,dt',
                 'partitions': '',
