@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   clickhouse:
-    # Используем стабильную версию для надежности
+    # Используем официальный образ ClickHouse
     # Для использования последней версии замените на: latest
-    image: abovyanmg/acs-clickhouse:stable
+    image: clickhouse/clickhouse-server:stable
     # Альтернативно, можно использовать конкретную версию:
-    # image: abovyanmg/acs-clickhouse:v1.0.0
+    # image: clickhouse/clickhouse-server:23.12
     container_name: my_clickhouse
     restart: unless-stopped
     ports:
