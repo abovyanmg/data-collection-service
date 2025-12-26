@@ -11,6 +11,9 @@ import time
 import hashlib
 from io import StringIO
 import json
+import zipfile
+import io
+import csv
 
 
 class WBbyDate:
@@ -226,7 +229,7 @@ class WBbyDate:
                 'report_name': 'nmreport',
                 'upload_table': 'nmreport',
                 'func_name': self.get_nmreport,
-                'uniq_columns': 'nmID,statistics_selectedPeriod_begin',
+                'uniq_columns': 'nmID,dt',
                 'partitions': '',
                 'merge_type': 'ReplacingMergeTree(timeStamp)',
                 'refresh_type': 'nothing',
@@ -620,41 +623,114 @@ class WBbyDate:
             self.common.log_func(self.bot_token, self.chat_list, message, 3)
             return message
 
-    def get_nmreport(self, date):
+    def create_nmreport(self, date):
+        """Создать задание на генерацию отчета nmreport"""
         try:
-            url = "https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail"
+            import uuid
+            url = "https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads"
             headers = {
                 "Authorization": self.token,
                 "Content-Type": "application/json"
             }
-            page = 1
-            all_cards = []  # Хранилище для всех карточек товара
-            begin_date = f"{date} 00:00:00"
-            end_date = f"{date} 23:59:59"
-            while True:
-                payload = {
-                    "period": {
-                        "begin": begin_date,
-                        "end": end_date
-                    },
-                    "page": page
+            report_id = str(uuid.uuid4())
+            payload = {
+                "id": report_id,
+                "reportType": "DETAIL_HISTORY_REPORT",
+                "params": {
+                    "startDate": date,
+                    "endDate": date,
+                    "timezone": "Europe/Moscow",
+                    "aggregationLevel": "day",
+                    "skipDeletedNm": False
                 }
-                response = requests.post(url, headers=headers, json=payload)
-                code = response.status_code
-                if code == 200:
-                    data = response.json().get('data', {})
-                    cards = data.get('cards', [])
-                    all_cards.extend(cards)  # Добавляем карточки на текущей странице
-                    is_next_page = data.get('isNextPage', False)
-                    if not is_next_page:
-                        break  # Если страниц больше нет, выходим из цикла
-                    page += 1  # Переходим на следующую страницу
-                    time.sleep(22)
-                else:
-                    response.raise_for_status()
-            message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: get_nmreport. Результат: ОК'
-            self.common.log_func(self.bot_token, self.chat_list, message, 1)
-            return self.common.spread_table(self.common.spread_table(self.common.spread_table(all_cards)))
+            }
+            response = requests.post(url, headers=headers, json=payload)
+            code = response.status_code
+            if code == 200:
+                return report_id
+            else:
+                response.raise_for_status()
+        except Exception as e:
+            message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: create_nmreport. Ошибка: {e}.'
+            self.common.log_func(self.bot_token, self.chat_list, message, 3)
+            return message
+
+    def nmreport_status(self, download_id):
+        """Проверить статус генерации отчета"""
+        try:
+            url = "https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads"
+            headers = {"Authorization": self.token}
+            params = {"filter[downloadIds]": [download_id]}
+            response = requests.get(url, headers=headers, params=params)
+            code = response.status_code
+            if code == 200:
+                data = response.json().get('data', [])
+                if data and len(data) > 0:
+                    return data[0].get('status', 'UNKNOWN')
+                return 'UNKNOWN'
+            else:
+                response.raise_for_status()
+        except Exception as e:
+            message = f'Платформа: WB. Имя: {self.add_name}. Функция: nmreport_status. Ошибка: {e}.'
+            self.common.log_func(self.bot_token, self.chat_list, message, 3)
+            return 'ERROR'
+
+    def get_nmreport_file(self, download_id):
+        """Скачать и обработать отчет nmreport"""
+        try:
+            url = f"https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads/file/{download_id}"
+            headers = {"Authorization": self.token}
+            response = requests.get(url, headers=headers)
+            code = response.status_code
+            if code == 200:
+                # Обработка ZIP архива с CSV файлами
+                all_rows = []
+                with zipfile.ZipFile(io.BytesIO(response.content)) as zip_file:
+                    for file_name in zip_file.namelist():
+                        if file_name.endswith('.csv'):
+                            with zip_file.open(file_name) as csv_file:
+                                csv_content = csv_file.read().decode('utf-8')
+                                csv_reader = csv.DictReader(io.StringIO(csv_content))
+                                for row in csv_reader:
+                                    all_rows.append(dict(row))
+                return all_rows
+            else:
+                response.raise_for_status()
+        except Exception as e:
+            message = f'Платформа: WB. Имя: {self.add_name}. Функция: get_nmreport_file. Ошибка: {e}.'
+            self.common.log_func(self.bot_token, self.chat_list, message, 3)
+            return message
+
+    def get_nmreport(self, date):
+        """Получить отчет nmreport (обновленный API)"""
+        try:
+            # 1. Создать задание на генерацию отчета
+            download_id = self.create_nmreport(date)
+            if isinstance(download_id, str) and download_id.startswith('Платформа'):
+                return download_id  # Ошибка при создании
+            
+            # 2. Ждать готовности отчета (максимум 20 попыток по 10 секунд)
+            for attempt in range(20):
+                time.sleep(10)
+                status = self.nmreport_status(download_id)
+                if status == 'SUCCESS':
+                    # 3. Скачать и обработать отчет
+                    all_rows = self.get_nmreport_file(download_id)
+                    if isinstance(all_rows, list):
+                        message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: get_nmreport. Результат: ОК'
+                        self.common.log_func(self.bot_token, self.chat_list, message, 1)
+                        return self.common.transliterate_dict_keys_in_list(all_rows)
+                    else:
+                        return all_rows  # Ошибка при скачивании
+                elif status == 'FAILED':
+                    message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: get_nmreport. Ошибка: Отчет не сгенерирован (FAILED).'
+                    self.common.log_func(self.bot_token, self.chat_list, message, 3)
+                    return message
+            
+            # Если не дождались готовности
+            message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: get_nmreport. Ошибка: Превышено время ожидания генерации отчета.'
+            self.common.log_func(self.bot_token, self.chat_list, message, 3)
+            return message
         except Exception as e:
             message = f'Платформа: WB. Имя: {self.add_name}. Дата: {str(date)}. Функция: get_nmreport. Ошибка: {e}.'
             self.common.log_func(self.bot_token, self.chat_list, message, 3)
