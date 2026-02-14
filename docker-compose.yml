@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:stable
+    container_name: my_clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=password
+    networks:
+      - data_network
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  upload_data:
+    image: abovyanmg/acs-upload-data:stable
+    container_name: upload_data
+    restart: unless-stopped
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    volumes:
+      - ./settings.xlsx:/app/settings.xlsx:ro
+    networks:
+      - data_network
+
+volumes:
+  clickhouse_data:
+    driver: local
+
+networks:
+  data_network:
+    driver: bridge

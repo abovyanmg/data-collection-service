@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<yandex>
+    <mark_cache_size>104857600</mark_cache_size>
+    <!-- Путь до директории с данными -->
+    <path>/var/lib/clickhouse/</path>
+
+    <!-- Путь до директории с временными файлами -->
+    <tmp_path>/var/lib/clickhouse/tmp/</tmp_path>
+
+    <!-- Путь для загружаемых пользователем файлов -->
+    <user_files_path>/var/lib/clickhouse/user_files/</user_files_path>
+
+    <!-- Путь для схем форматов -->
+    <format_schema_path>/var/lib/clickhouse/format_schemas/</format_schema_path>
+
+    <!-- Логирование -->
+    <logger>
+        <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+        <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+        <level>trace</level>
+    </logger>
+
+    <!-- HTTP порт -->
+    <http_port>8123</http_port>
+
+    <!-- Порт для клиентских подключений -->
+    <tcp_port>9000</tcp_port>
+
+    <!-- Настройки сети -->
+    <listen_host>0.0.0.0</listen_host>
+
+    <users_config>/etc/clickhouse-server/users.xml</users_config>
+
+
+    <!-- Настройки профилей -->
+    <profiles>
+        <default>
+            <max_memory_usage>10000000000</max_memory_usage> <!-- Пример: 10 ГБ -->
+            <max_threads>8</max_threads>
+            <max_query_size>1048576</max_query_size> <!-- Пример: 1 МБ -->
+             <!-- Пример: 100 МБ -->
+        </default>
+    </profiles>
+
+    <!-- Настройки квот -->
+    <quotas>
+        <default>
+            <max_queries>1000</max_queries> <!-- Максимальное количество запросов -->
+            <max_errors>100</max_errors> <!-- Максимальное количество ошибок -->
+        </default>
+    </quotas>
+</yandex>

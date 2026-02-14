@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+LABEL maintainer="abovyan.mg@gmail.com"
+LABEL description="ACS Data collection container for multiple platforms (WB, Ozon, MSKLD, Yandex, etc.)"
+LABEL version="1.0.2"
+LABEL source="https://github.com/abovyanmg/data-collection-service"
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc g++ curl wget && \
+    rm -rf /var/lib/apt/lists/*
+
+# В образе только скрипт запуска. Библиотека ставится при старте контейнера с PyPI (как у оригинала).
+COPY admin/docker/upload_main.py .
+
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import os; exit(0 if os.path.exists('/app/settings.xlsx') else 1)" || exit 1
+
+# При каждом старте контейнера — обновление пакета с PyPI, затем запуск (гарантия свежей версии для клиентов).
+CMD ["sh", "-c", "pip install --no-cache-dir --upgrade acs-data-collection && python upload_main.py"]
