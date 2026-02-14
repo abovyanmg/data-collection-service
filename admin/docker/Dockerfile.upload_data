@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 LABEL maintainer="abovyan.mg@gmail.com"
 LABEL description="ACS Data collection container for multiple platforms (WB, Ozon, MSKLD, Yandex, etc.)"
-LABEL version="1.0.2"
+LABEL version="1.0.3"
 LABEL source="https://github.com/abovyanmg/data-collection-service"
 
 WORKDIR /app

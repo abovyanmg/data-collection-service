@@ -242,7 +242,7 @@ class WBbyDate:
                 'report_name': 'voronka_all',
                 'upload_table': 'voronka_all',
                 'func_name': self.get_voronka_all,
-                'uniq_columns': 'product_nmId,statistic_selected_period_start',
+                'uniq_columns': 'product_nmId,statistic_selected_period',
                 'partitions': '',
                 'merge_type': 'ReplacingMergeTree(timeStamp)',
                 'refresh_type': 'nothing',

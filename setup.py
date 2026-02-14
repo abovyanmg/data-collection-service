@@ -5,7 +5,7 @@ with open('README.md', encoding='utf-8') as f:
 
 setup(
     name='acs-data-collection',
-    version='1.0.2',
+    version='1.0.3',
     packages=find_packages(where='admin/library'),
     package_dir={'': 'admin/library'},
     description='ACS Data Collection Service - Professional data collection from marketplaces to ClickHouse',
